@@ -20,6 +20,11 @@ def drange(start, stop, step):
     r += step
 
 def aloha_pure(rate):
+    """
+
+    :param rate: analogous to 'Lambda'
+    :return: Throughput
+    """
     evt_lst_pkt_arr = []
     for i in range(int(rate * sim_time)):
         evt_lst_pkt_arr.append(random.uniform(0, sim_time))

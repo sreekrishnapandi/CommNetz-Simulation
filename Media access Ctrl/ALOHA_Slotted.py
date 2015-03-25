@@ -34,6 +34,12 @@ def round_to_slot(evt, slot_size):
 ###Slotted Aloha
 
 def aloha_slotted(rate, slot_size):
+    """
+    Similar to pure aloha. But pushes every event to the begining of the next slot.
+    :param rate: analogous to 'lambda'
+    :param slot_size:
+    :return: Throughput
+    """
     evt_lst_pkt_arr = []
     for i in range(int(rate * sim_time)):
         evt_lst_pkt_arr.append(random.uniform(0, sim_time))
