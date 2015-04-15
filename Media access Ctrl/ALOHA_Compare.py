@@ -105,14 +105,83 @@ def aloha_slotted(rate, slot_size):
 
     return S
 
+def CSMA_1P(rate):
+    """
+
+    :param rate: analogous to 'Lambda'
+    :return: Throughput
+    """
+    evt_lst_pkt_arr = []
+    evt_lst_pkt_sent = []
+
+    if rate == 0:
+        return 0
+
+    for i in range(int(rate * sim_time)):
+        evt_lst_pkt_arr.append(random.uniform(0, sim_time))
+
+    # print evt_lst_pkt_arr
+
+    evt_lst_pkt_arr = np.array(evt_lst_pkt_arr)
+    sorted_evt_lst_pkt_arr = np.sort(evt_lst_pkt_arr)
+
+    # print sorted_evt_lst_pkt_arr
+
+    collision_course = False
+    num_pkts = len(sorted_evt_lst_pkt_arr)
+    dropped_pkts = 0
+
+    evt_lst_pkt_sent.append(sorted_evt_lst_pkt_arr[0])           # send first packet unconditionally
+    for i in range( num_pkts - 1):
+        if sorted_evt_lst_pkt_arr[i+1] - evt_lst_pkt_sent[i] < 0:
+            evt_lst_pkt_sent.append(evt_lst_pkt_sent[i])
+        elif not sorted_evt_lst_pkt_arr[i+1] - evt_lst_pkt_sent[i] < pkt_len :
+            evt_lst_pkt_sent.append(sorted_evt_lst_pkt_arr[i+1])
+        elif sorted_evt_lst_pkt_arr[i+1] - evt_lst_pkt_sent[i] < pkt_len :
+            evt_lst_pkt_sent.append(evt_lst_pkt_sent[i]+pkt_len)
+
+    # print (evt_lst_pkt_arr)
+    # print "###########################################################################################################"
+    # print (sorted_evt_lst_pkt_arr)
+    # print (evt_lst_pkt_sent)
+
+    sorted_evt_lst_pkt_arr = evt_lst_pkt_sent
+
+    for i in range( num_pkts - 1):
+        if sorted_evt_lst_pkt_arr[i+1] - sorted_evt_lst_pkt_arr[i] < pkt_len-0.001 :
+            if collision_course:
+                dropped_pkts += 1
+            else:
+                dropped_pkts += 2
+            collision_course = True
+            # print "#####"
+            # print sorted_evt_lst_pkt_arr[i]
+            # print sorted_evt_lst_pkt_arr[i+1]
+            # print sorted_evt_lst_pkt_arr[i+1] - sorted_evt_lst_pkt_arr[i]
+            # print "#####"
+
+
+        else:
+            collision_course = False
+
+    S = ((num_pkts - dropped_pkts)*1./sim_time) * pkt_len
+    G = rate * pkt_len
+    print "G: ", G
+    print "S: ", S
+    print "dropped_pkts = ", dropped_pkts
+
+    return S
+
+
 
 
 pkt_len = 0.01      # (Tau)     in seconds
-sim_time = 10000    #           in seconds
+sim_time = 100    #           in seconds
 
 rate = 50           # (Lambda)  pkts per sec
 Throughput_Pure = []
 Throughput_Slotted = []
+Throughput_CSMA_1P = []
 Load = []
 
 for G in np.arange(0, 7, 0.1):
@@ -121,9 +190,12 @@ for G in np.arange(0, 7, 0.1):
     print "RATE = " , rate
     Throughput_Pure.append(aloha_pure(rate))
     Throughput_Slotted.append(aloha_slotted(rate, pkt_len))
+    Throughput_CSMA_1P.append(CSMA_1P(rate))
 
 plt.plot(Load, Throughput_Pure, label="Pure")
 plt.plot(Load, Throughput_Slotted, label="Slotted")
+plt.plot(Load, Throughput_CSMA_1P, label="CSMA_1P")
+
 plt.xlabel("Channel Traffic - G")
 plt.ylabel("Channel Throughput - S")
 plt.legend()
